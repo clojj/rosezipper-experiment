@@ -29,7 +29,10 @@ import           Data.Tree.Zipper               ( TreePos
 testtree :: Tree String
 testtree = Node
   "C"
-  [Node "A" [Node "E" [], Node "F" []], Node "B" [Node "E" []], Node "X" [Node "X1" []]]
+  [ Node "A" [Node "E" [], Node "F" []]
+  , Node "B" [Node "E" []]
+  , Node "X" [Node "X1" []]
+  ]
 
 testtree' :: Tree String
 testtree' = Node "C" []
@@ -39,7 +42,8 @@ testtree'' = Node "C" [Node "1" [Node "11" []], Node "2" []]
 
 
 main :: IO ()
-main = mapM_ (\t -> print "---" >> _traverse t) [testtree, testtree', testtree'']
+main =
+  mapM_ (\t -> print "---" >> _traverse t) [testtree, testtree', testtree'']
 
 -- traversal (showing each node) only with cursor-functions 'parent', 'next' and 'firstChild'
 _traverse :: Show a => Tree a -> IO ()
