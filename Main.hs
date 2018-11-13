@@ -56,11 +56,11 @@ _traverse = go . fromTree
       Nothing -> case next z of
         Nothing -> case parent z of
           Nothing -> print "END"
-          Just p  -> case next p of
+          Just _parent  -> case next _parent of
             Nothing         -> print "END next"
-            Just nxt_parent -> go nxt_parent
-        Just nxt -> go nxt
-      Just child -> go child
+            Just _next -> go _next
+        Just _next -> go _next
+      Just _child -> go _child
 
 debugNode :: Show a => TreePos Full a -> IO ()
 debugNode = print . label
