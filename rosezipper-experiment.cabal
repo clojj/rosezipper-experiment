@@ -1,0 +1,11 @@
+name:           rosezipper-experiment
+version:        0.0.1
+build-Depends:  base < 5
+              , containers
+              , QuickCheck 
+              , random
+
+build-type:         Simple  
+exposed-modules:    Data.Tree.Zipper, Main
+ghc-options:        -O2 -Wall
+
