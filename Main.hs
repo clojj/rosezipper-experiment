@@ -7,29 +7,17 @@ module Main
   )
 where
 
-import           Data.List                      ( minimumBy, nub )
+import Data.List hiding (insert, delete) 
 import           Data.Ord                       ( comparing )
 import           Data.Tree                      ( Tree(Node)
                                                 , rootLabel
                                                 , flatten
                                                 , drawTree
                                                 )
-import           Data.Tree.Zipper               ( TreePos
-                                                , Full
-                                                , Empty
-                                                , nextTree
-                                                , nextSpace
-                                                , fromTree
-                                                , tree
-                                                , children
-                                                , label
-                                                , firstChild
-                                                , next
-                                                , parent
-                                                )
+import           Data.Tree.Zipper               
 
 import           Control.Monad.Writer
-import           Data.List
+
 import qualified Test.QuickCheck               as QC
 import           Test.QuickCheck.Gen
 import           Test.QuickCheck.Arbitrary
@@ -81,6 +69,27 @@ _traverseM f = go f Down . fromTree
       Nothing   -> fn z
       Just node -> go fn Next node
 
+-- TODO with type variable
+_traverseBuild :: Tree String -> Tree String
+_traverseBuild = toTree . (go (fromTree (Node "NEW TREE" [])) Down) . fromTree
+ where
+  go
+    :: TreePos Full String
+    -> Navigation
+    -> TreePos Full String
+    -> TreePos Full String
+  go n nav z = case nav of
+    Down -> case firstChild z of
+      Nothing   -> go n Next z
+      Just node -> go (insert (Node (label node) []) (children n)) Down node
+    Next -> case next z of
+      Nothing   -> go n Up z
+      Just node -> go (insert (Node (label node) []) (children n)) Down node
+    Up -> case parent z of
+      Nothing   -> n
+      Just node -> go n Next node
+
+
 collectNode :: TreePos Full a -> Writer [a] ()
 collectNode z = let str = label z in tell [str]
 
@@ -90,13 +99,12 @@ debugNode = print . label
 
 -- tests
 
+-- TODO compare tree from _traverseBuild
+
 _prop_traverses_all :: (Eq a, Show a) => Tree a -> QC.Property
 _prop_traverses_all tree =
   QC.label ("tree size " ++ show (length $ flatten tree))
     $ compList (flatten tree) (execWriter $ _traverseM collectNode tree)
-
-
--- TODO build 2nd tree with new rosezipper, then compare if trees are Eq
 
 compList :: Eq a => [a] -> [a] -> Bool
 compList x y = unique x && unique y && null (x \\ y)
