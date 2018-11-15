@@ -7,14 +7,17 @@ module Main
   )
 where
 
-import Data.List hiding (insert, delete) 
+import           Data.List               hiding ( insert
+                                                , delete
+                                                )
+import           Data.Maybe
 import           Data.Ord                       ( comparing )
 import           Data.Tree                      ( Tree(Node)
                                                 , rootLabel
                                                 , flatten
                                                 , drawTree
                                                 )
-import           Data.Tree.Zipper               
+import           Data.Tree.Zipper
 
 import           Control.Monad.Writer
 
@@ -69,19 +72,13 @@ _traverseM f = go f Down . fromTree
       Nothing   -> fn z
       Just node -> go fn Next node
 
-_traverseBuild :: Tree a -> Tree a
-_traverseBuild tree = 
-  let t  = fromTree tree
-      rt = root t
-  in
-    toTree $ go rt Down t
 
+_traverseBuild :: Tree a -> Tree a
+_traverseBuild tree =
+  let t = fromTree tree
+  in  toTree $ go (fromTree (Node (label $ root t) [])) Down t
  where
-  go
-    :: TreePos Full a
-    -> Navigation
-    -> TreePos Full a
-    -> TreePos Full a
+  go :: TreePos Full a -> Navigation -> TreePos Full a -> TreePos Full a
   go n nav z = case nav of
     Down -> case firstChild z of
       Nothing   -> go n Next z
@@ -91,7 +88,7 @@ _traverseBuild tree =
       Just node -> go (insert (Node (label node) []) (nextSpace n)) Down node
     Up -> case parent z of
       Nothing   -> n
-      Just node -> go n Next node
+      Just node -> go (fromJust $ parent n) Next node
 
 
 collectNode :: TreePos Full a -> Writer [a] ()
@@ -102,8 +99,6 @@ debugNode = print . label
 
 
 -- tests
-
--- TODO compare tree from _traverseBuild
 
 _prop_traverses_all :: (Eq a, Show a) => Tree a -> QC.Property
 _prop_traverses_all tree =
@@ -117,8 +112,17 @@ unique :: Eq a => [a] -> Bool
 unique ls = length ls == length (nub ls)
 
 
+
+_prop_traverses_all_and_builds :: (Eq a, Show a) => Tree a -> QC.Property
+_prop_traverses_all_and_builds tree =
+  QC.label ("tree size " ++ show (length $ flatten tree))
+    $  tree
+    == _traverseBuild tree
+
+
 -- main
 
+-- in GHCI:
 -- QC.quickCheck $ QC.mapSize ((*) 1000) $ QC.withMaxSuccess 50 _prop_traverses_all
 
 main :: IO ()
