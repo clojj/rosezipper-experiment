@@ -7,7 +7,7 @@ module Main
   )
 where
 
-import           Data.List                      ( minimumBy )
+import           Data.List                      ( minimumBy, nub )
 import           Data.Ord                       ( comparing )
 import           Data.Tree                      ( Tree(Node)
                                                 , rootLabel
@@ -38,9 +38,9 @@ import           Test.QuickCheck.Instances.Containers
 
 testtree :: Tree String
 testtree = Node
-  "C"
-  [ Node "A" [Node "E" [], Node "F" []]
-  , Node "B" [Node "E" []]
+  "Top"
+  [ Node "A" [Node "AE" [], Node "AF" []]
+  , Node "B" [Node "BE" []]
   , Node "X" [Node "X1" []]
   ]
 
@@ -95,9 +95,14 @@ _prop_traverses_all tree =
   QC.label ("tree size " ++ show (length $ flatten tree))
     $ compList (flatten tree) (execWriter $ _traverseM collectNode tree)
 
-compList :: (Eq a) => [a] -> [a] -> Bool
-compList x y = null (x \\ y) && null (y \\ x)
 
+-- TODO build 2nd tree with new rosezipper, then compare if trees are Eq
+
+compList :: Eq a => [a] -> [a] -> Bool
+compList x y = unique x && unique y && null (x \\ y)
+
+unique :: Eq a => [a] -> Bool
+unique ls = length ls == length (nub ls)
 
 
 -- main
