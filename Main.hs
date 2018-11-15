@@ -70,21 +70,26 @@ _traverseM f = go f Down . fromTree
       Just node -> go fn Next node
 
 -- TODO with type variable
-_traverseBuild :: Tree String -> Tree String
-_traverseBuild = toTree . (go (fromTree (Node "NEW TREE" [])) Down) . fromTree
+_traverseBuild :: Tree a -> Tree a
+_traverseBuild tree = 
+  let t  = fromTree tree
+      rt = root t
+  in
+    toTree $ go rt Down t
+
  where
   go
-    :: TreePos Full String
+    :: TreePos Full a
     -> Navigation
-    -> TreePos Full String
-    -> TreePos Full String
+    -> TreePos Full a
+    -> TreePos Full a
   go n nav z = case nav of
     Down -> case firstChild z of
       Nothing   -> go n Next z
       Just node -> go (insert (Node (label node) []) (children n)) Down node
     Next -> case next z of
       Nothing   -> go n Up z
-      Just node -> go (insert (Node (label node) []) (children n)) Down node
+      Just node -> go (insert (Node (label node) []) (nextSpace n)) Down node
     Up -> case parent z of
       Nothing   -> n
       Just node -> go n Next node
