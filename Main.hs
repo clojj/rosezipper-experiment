@@ -69,7 +69,6 @@ _traverseM f = go f Down . fromTree
       Nothing   -> fn z
       Just node -> go fn Next node
 
--- TODO with type variable
 _traverseBuild :: Tree a -> Tree a
 _traverseBuild tree = 
   let t  = fromTree tree
